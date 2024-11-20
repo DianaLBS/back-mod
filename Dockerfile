@@ -1,14 +1,13 @@
-# Usar una imagen base con Java (ajusta la versión de Java según corresponda)
+# Usar una imagen base de OpenJDK
 FROM openjdk:11-jre-slim
 
-# Definir el directorio de trabajo dentro del contenedor
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copiar el archivo WAR o JAR de tu aplicación al contenedor
-COPY target/saamfi2-backend.jar /app/saamfi2-backend.jar
+# Copy the JAR file from the build stage
+COPY --from=build /app/saamfi-rest/target/saamfiapi.war /app/saamfi-backend.war
 
-# Exponer el puerto de la aplicación
 EXPOSE 8087
 
-# Comando para ejecutar la aplicación
-CMD ["java", "-jar", "/app/saamfi2-backend.jar"]
+# Run the Spring Boot app
+CMD ["java", "-jar", "/app/saamfi-backend.war"]
