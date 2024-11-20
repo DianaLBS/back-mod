@@ -1,15 +1,16 @@
+# Etapa 1: Construcción
 FROM maven:3.8.6-openjdk-11 AS build
 
-# Set the working directory
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copy app source
+# Copiar el código fuente de la aplicación al contenedor
 COPY . .
 
-# Make sure the mvnw script is executable
+# Hacer que el script mvnw sea ejecutable (si usas Maven Wrapper)
 RUN chmod +x mvnw
 
-# Copy and install custom JAR
+# Copiar e instalar el JAR personalizado (ojdbc6) en el repositorio local de Maven
 COPY libs/ojdbc6-11.2.0.3.jar /app/libs/ojdbc6-11.2.0.3.jar
 RUN mvn install:install-file \
     -Dfile=/app/libs/ojdbc6-11.2.0.3.jar \
@@ -18,20 +19,20 @@ RUN mvn install:install-file \
     -Dversion=11.2.0.3 \
     -Dpackaging=jar
 
-# Compile and package the Spring Boot application
-RUN mvn install -Dmaven.test.skip=true
+# Compilar y empaquetar la aplicación Spring Boot, sin ejecutar pruebas
+RUN mvn clean install -Dmaven.test.skip=true
 
-
-# Use a smaller image for the runtime
+# Etapa 2: Ejecución
 FROM openjdk:11-jre-slim
-#
-# Set the working directory
+
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copy the JAR file from the build stage
+# Copiar el archivo WAR generado en la etapa de construcción
 COPY --from=build /app/saamfi-rest/target/saamfiapi.war /app/saamfi-backend.war
 
+# Exponer el puerto para la aplicación
 EXPOSE 8080
 
-# Run the Spring Boot app
+# Ejecutar la aplicación Spring Boot
 CMD ["java", "-jar", "/app/saamfi-backend.war"]
